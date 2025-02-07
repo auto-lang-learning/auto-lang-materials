@@ -1,6 +1,6 @@
 import yt_dlp
 import os
-import time
+import re
 
 def download_video(url, output_dir, cookies_path=None, retries=3):
     # 创建输出目录（如果不存在）
@@ -9,6 +9,9 @@ def download_video(url, output_dir, cookies_path=None, retries=3):
     ydl_opts = {
         'format': 'best',  # 下载最佳格式
         'retries': retries,  # 重试次数
+        'writesubtitles': True,  # 下载字幕
+        'subtitleslangs': ['en'],  # 指定字幕语言
+        'subtitlesformat': 'vtt',  # 指定字幕格式
     }
 
     if cookies_path:
@@ -26,6 +29,23 @@ def download_video(url, output_dir, cookies_path=None, retries=3):
                 # 重新创建 YoutubeDL 对象以应用新的 outtmpl
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([url])
+                
+                # 获取字幕文件路径
+                subtitle_path = os.path.join(output_dir, f"{video_title}.en.vtt")
+                if os.path.exists(subtitle_path):
+                    # 读取字幕文件并删除时间轴
+                    with open(subtitle_path, 'r', encoding='utf-8') as f:
+                        lines = f.readlines()
+                    
+                    text_lines = []
+                    for line in lines:
+                        if not re.match(r'\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}', line):
+                            text_lines.append(line.strip())
+                    
+                    # 保存纯文本文件
+                    text_output_path = os.path.join(output_dir, f"{video_title}.txt")
+                    with open(text_output_path, 'w', encoding='utf-8') as f:
+                        f.write('\n'.join(text_lines))
             break  # 成功下载后退出循环
         except yt_dlp.utils.DownloadError as e:
             print(f"下载失败，重试 {attempt + 1}/{retries} 次...")
