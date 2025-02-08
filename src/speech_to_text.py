@@ -2,6 +2,7 @@ import whisper
 import os
 import torch 
 from typing import TextIO
+import time
 
 import whisper.tokenizer
 
@@ -32,10 +33,13 @@ class SpeechToText:
 
 
 if __name__ == "__main__":
+    
     test_audio = "downloads/test_1min.mp3"
     result_path = "downloads/"
     if not os.path.exists(result_path):
         open(result_path, 'w').close()
 
-    stt = SpeechToText(model_name='large')
+    stt = SpeechToText(model_name='turbo')
+    start_time = time.time()
     stt.speech_to_text(test_audio, result_path, format='VTT',language='ru')
+    print("Execution time for transcribe: ", time.time()-start_time)
