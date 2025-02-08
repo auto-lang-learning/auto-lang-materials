@@ -2,16 +2,22 @@ import yt_dlp
 import os
 import re
 
-def download_video(url, output_dir, cookies_path=None, retries=3):
+def download_video(url, output_dir, cookies_path=None, retries=3,proxy=None):
     # 创建输出目录（如果不存在）
     os.makedirs(output_dir, exist_ok=True)
 
     ydl_opts = {
-        'format': 'best',  # 下载最佳格式
         'retries': retries,  # 重试次数
         'writesubtitles': True,  # 下载字幕
-        'subtitleslangs': ['en'],  # 指定字幕语言
+        'subtitleslangs': ['ru'],  # 指定字幕语言
         'subtitlesformat': 'vtt',  # 指定字幕格式
+        'format': 'bestaudio/best',  # 下载最佳音频格式
+        'postprocessors': [{  # 音频后处理
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'proxy': proxy
     }
 
     if cookies_path:
@@ -54,7 +60,7 @@ def download_video(url, output_dir, cookies_path=None, retries=3):
         print("下载失败，请检查网络连接或URL是否正确。")
 
 if __name__ == "__main__":
-    video_url = "https://www.youtube.com/watch?v=F_DfaUVa3Bs"
-    output_dir = "videos"  # 确保这是一个目录
+    video_url = "https://www.youtube.com/watch?v=iAplA7l1am0"
+    output_dir = "downloads"  # 确保这是一个目录
     cookies_path = "path/to/your/cookies.txt"  # 替换为实际的 cookies 文件路径
-    download_video(video_url, output_dir, cookies_path)
+    download_video(video_url, output_dir, cookies_path,proxy="http://127.0.0.1:7890")
