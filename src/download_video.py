@@ -62,6 +62,10 @@ def download_video(url, output_dir, cookies_path=None, proxy=None, retries=3):
                             f.write('\n'.join(text_lines))
                 else:
                     print('No subtitles available.')
+
+                    # 这里调用 后续的STT
+
+                    
             break  # 成功下载后退出循环
         except yt_dlp.utils.DownloadError as e:
             print(f"下载失败，重试 {attempt + 1}/{retries} 次...")
