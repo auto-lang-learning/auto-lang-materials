@@ -3,6 +3,10 @@ import os
 import re
 import time
 import json
+import logging
+
+# 配置日志记录
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def download_video(url, output_dir, cookies_path=None, proxy=None, retries=3):
     # 创建输出目录（如果不存在）
@@ -14,7 +18,7 @@ def download_video(url, output_dir, cookies_path=None, proxy=None, retries=3):
         'writesubtitles': True,  # 下载字幕
         'subtitleslangs': ['en'],  # 指定字幕语言
         'subtitlesformat': 'vtt',  # 指定字幕格式
-        'proxy': proxy
+        'proxy': proxy,
     }
 
     if cookies_path:
@@ -32,6 +36,7 @@ def download_video(url, output_dir, cookies_path=None, proxy=None, retries=3):
                 # 获取视频信息
                 info_dict = ydl.extract_info(url, download=False)
                 video_title = info_dict.get('title', 'video')
+                video_title = re.sub(r'[\\/*?:"<>|]', "", video_title)  # Remove invalid characters from title
                 video_info['video_title'] = video_title
                 # 设置输出文件路径
                 output_path = os.path.join(output_dir, f"{video_title}.mp4")
@@ -41,40 +46,36 @@ def download_video(url, output_dir, cookies_path=None, proxy=None, retries=3):
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([url])
                 
-                # 检查是否包含字幕
-                if info_dict.get('requested_subtitles'):
-                    video_info['subtitles_available'] = True
-                    # 获取字幕文件路径
-                    subtitle_path = os.path.join(output_dir, f"{video_title}.en.vtt")
-                    if os.path.exists(subtitle_path):
-                        # 读取字幕文件并删除时间轴
-                        with open(subtitle_path, 'r', encoding='utf-8') as f:
-                            lines = f.readlines()
-                        
-                        text_lines = []
-                        for line in lines:
-                            if not re.match(r'\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}', line):
-                                text_lines.append(line.strip())
-                        
-                        # 保存纯文本文件
-                        text_output_path = os.path.join(output_dir, f"{video_title}.txt")
-                        with open(text_output_path, 'w', encoding='utf-8') as f:
-                            f.write('\n'.join(text_lines))
-                else:
-                    print('No subtitles available.')
-
-                    # 这里调用 后续的STT
-
-                    
-            break  # 成功下载后退出循环
+                # 处理字幕
+                process_subtitles(info_dict, output_dir, video_title, video_info)  # 传递 video_info 参数
+                break  # 成功下载后退出循环
         except yt_dlp.utils.DownloadError as e:
-            print(f"下载失败，重试 {attempt + 1}/{retries} 次...")
+            logging.error(f"下载失败，重试 {attempt + 1}/{retries} 次: {e}")
             time.sleep(5)  # 等待一段时间后重试
     else:
-        print("下载失败，请检查网络连接或URL是否正确。")
+        logging.error("下载失败，请检查网络连接或URL是否正确。")
 
     # 保存视频信息到 JSON 文件
     save_video_info(output_dir, video_info)
+
+def process_subtitles(info_dict, output_dir, video_title, video_info):  # 添加 video_info 参数
+    if info_dict.get('requested_subtitles'):
+        video_info['subtitles_available'] = True
+        # 获取字幕文件路径
+        subtitle_path = os.path.join(output_dir, f"{video_title}.en.vtt")
+        if os.path.exists(subtitle_path):
+            # 读取字幕文件并删除时间轴
+            with open(subtitle_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            
+            text_lines = [line.strip() for line in lines if not re.match(r'\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}', line)]
+            
+            # 保存纯文本文件
+            text_output_path = os.path.join(output_dir, f"{video_title}.txt")
+            with open(text_output_path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(text_lines))
+    else:
+        logging.info('No subtitles available.')
 
 def save_video_info(output_dir, video_info):
     json_output_path = os.path.join(output_dir, "output_result.json")
