@@ -22,55 +22,33 @@ def translate_vtt(input_vtt, output_vtt, target_language, model_name):
         "Ensure the translation maintains the context and meaning of the original text, and preserve the original line separations. "
         "Return the translation as a JSON object with a key 'lines' that contains a list of translated lines in order."
     )
-    completion = client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {'role': 'system', 'content': system_prompt},
-            {'role': 'user', 'content': json.dumps({
-                "lines": [line.text for line in subs],
-                "target_language": target_language
-            })}
-        ],
-        response_format={"type": "json_object"}
-    )
     retries = 3
     for attempt in range(retries):
-        completion = client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {'role': 'system', 'content': system_prompt},
-            {'role': 'user', 'content': json.dumps({
-                "lines": [line.text for line in subs],
-                "target_language": target_language
-            })}
-        ],
-        response_format={"type": "json_object"}
-    )
-        result_json = completion.model_dump_json()
-        print(result_json)
         try:
+            completion = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {'role': 'system', 'content': system_prompt.format(target_language=target_language)},
+                    {'role': 'user', 'content': json.dumps({
+                        "lines": [line.text for line in subs],
+                        "target_language": target_language
+                    })}
+                ],
+                response_format="json"
+            )
+            result_json = completion.model_dump_json()
+            print(result_json)
             result = json.loads(result_json)
-            # Check that the response has the expected key and that 'lines' is a list
-            if result and isinstance(result, dict) and "lines" in result and isinstance(result["lines"], list):
+            if "lines" in result and isinstance(result["lines"], list):
                 break
         except Exception:
             pass
-    if attempt < retries - 1:
-        time.sleep(2 ** attempt)  # Exponential backoff
-        completion = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {'role': 'system', 'content': system_prompt},
-                {'role': 'user', 'content': json.dumps({
-                    "lines": [line.text for line in subs],
-                    "target_language": target_language
-                })}
-            ],
-            response_format="json"
-        )
-             
+
+        if attempt < retries - 1:
+            time.sleep(2 ** attempt)  # Exponential backoff
     else:
         raise ValueError("The model did not return a valid response after retries.")
+   
     # Split the translated text back into lines
     translated_lines = result.split("\n")
     
