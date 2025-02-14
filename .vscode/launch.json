@@ -1,0 +1,44 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "name": "Launch translate_vtt.py",
+            "program": "${workspaceFolder}/src/translate_vtt.py",
+            "envFile": "${workspaceFolder}/.env",
+            "args": [
+                "${input:inputVtt}",
+                "${input:outputVtt}",
+                "${input:targetLanguage}",
+                "${input:modelName}"
+            ]
+        }
+    ],
+    "inputs": [
+        {
+            "type": "promptString",
+            "id": "inputVtt",
+            "description": "Path to the input VTT file",
+            "default": "${workspaceFolder}/downloads/test_1min.vtt"
+        },
+        {
+            "type": "promptString",
+            "id": "outputVtt",
+            "description": "Path to the output VTT file",
+            "default": "${workspaceFolder}/downloads/test_1min_translated.vtt"
+        },
+        {
+            "type": "promptString",
+            "id": "targetLanguage",
+            "description": "Target language for translation",
+            "default": "chinese"
+        },
+        {
+            "type": "promptString",
+            "id": "modelName",
+            "description": "Model name for translation",
+             "default": "qwen2.5-7b-instruct-1m"
+        }
+    ]
+}

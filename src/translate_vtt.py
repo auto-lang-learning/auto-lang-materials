@@ -15,13 +15,14 @@ def translate_vtt(input_vtt, output_vtt, target_language, model_name):
     # Load the VTT file
     subs = pysubs2.load(input_vtt, encoding="utf-8")
     
-    
+    for lines in subs:
+        print(lines.text)  
     client = OpenAI(api_key=api_key, base_url=base_url)
-    system_prompt = (
-        "You are a helpful assistant. Translate the following subtitles to {target_language}. "
-        "Ensure the translation maintains the context and meaning of the original text, and preserve the original line separations. "
-        "Return the translation as a JSON object with a key 'lines' that contains a list of translated lines in order."
-    )
+    system_prompt = \
+        '''You are a helpful assistant. Translate the following subtitles to {target_language}. 
+         Ensure the translation maintains the context and meaning of the original text,
+        "Return the translation as a JSON object with a key 'lines' that contains the concatenated string. Here is the subtitle text:'''
+
     retries = 3
     for attempt in range(retries):
         try:
@@ -34,18 +35,18 @@ def translate_vtt(input_vtt, output_vtt, target_language, model_name):
                         "target_language": target_language
                     })}
                 ],
-                response_format="json"
             )
             result_json = completion.model_dump_json()
             print(result_json)
             result = json.loads(result_json)
             if "lines" in result and isinstance(result["lines"], list):
                 break
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Exception encountered: {e}")
+            
 
         if attempt < retries - 1:
-            time.sleep(2 ** attempt)  # Exponential backoff
+            time.sleep(0.5) 
     else:
         raise ValueError("The model did not return a valid response after retries.")
    
@@ -61,7 +62,7 @@ def translate_vtt(input_vtt, output_vtt, target_language, model_name):
         subs.save(output_vtt)
     else:
         return subs
-    
+                                                                                                                                                                                                                             
 
 if __name__ == "__main__":
     input_vtt = 'downloads/test_1min.vtt'
