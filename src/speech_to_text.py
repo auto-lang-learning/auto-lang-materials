@@ -5,6 +5,7 @@ from typing import TextIO
 import time
 
 import whisper.tokenizer
+import whisper.utils
 
 
 class SpeechToText:
@@ -17,21 +18,37 @@ class SpeechToText:
                 self.device = "cpu"
         self.model = whisper.load_model(model_name, device=self.device)
     
-    def speech_to_text(self, audio_path,output_dir,format='TXT',language=None):
+    def transcribe_audio(self, audio_path, language=None):
         # Load the audio file
         audio = whisper.load_audio(audio_path)
-        result= self.model.transcribe(audio,verbose=True,language=language)
-        
-        if format=='TXT':
-            whisper.utils.WriteTXT(output_dir)(result,audio_path)
-        elif format=='SRT':
+        result = self.model.transcribe(audio, verbose=True, language=language)
+        return result
+
+    def speech_to_text(self, audio_path, output_dir, format='VTT',persist_original_result=True, language=None):
+        # Transcribe the audio
+        result = self.transcribe_audio(audio_path, language)
+        # Write the result in the specified format
+        if format == 'TXT':
+            whisper.utils.WriteTXT(output_dir)(result, audio_path)
+        elif format == 'SRT':
             whisper.utils.WriteSRT(output_dir)(result, audio_path)
-        elif format=='VTT':
+        elif format == 'VTT':
             whisper.utils.WriteVTT(output_dir)(result, audio_path)
-        elif format=='JSON':
+        elif format == 'JSON':
             whisper.utils.WriteJSON(output_dir)(result, audio_path)
-        elif format=='TSV':
+        elif format == 'TSV':
             whisper.utils.WriteTSV(output_dir)(result, audio_path)
+        
+        if persist_original_result:
+            self.save_original_result(audio_path, output_dir, result)
+
+    def save_original_result(self, audio_path, output_dir, result):
+    # Always generate a serialized version of the result dict with the .whisper extension
+        base_name = os.path.splitext(os.path.basename(audio_path))[0]
+        whisper_file_path = os.path.join(output_dir, base_name + '.whisper')
+        with open(whisper_file_path, 'w') as f:
+            f.write(str(result))
+
 
 
 if __name__ == "__main__":
@@ -64,7 +81,7 @@ if __name__ == "__main__":
         except FileNotFoundError:
             print("Error: mpv player not found. Install with: sudo apt install mpv")
 
-    test_audio = "downloads/test.mp3"
+    test_audio = "downloads/test_1min.mp3"
     result_path = "downloads/"
     original_subtitle_path = None
     if not os.path.exists(result_path):
@@ -72,7 +89,7 @@ if __name__ == "__main__":
 
     stt = SpeechToText(model_name='turbo',device='cpu')
     start_time = time.time()
-    stt.speech_to_text(test_audio, result_path, format='VTT',language=None)
+    stt.speech_to_text(test_audio, result_path, format='WHISPER',language=None)
     print("Execution time for transcribe: ", time.time()-start_time)
      # Preview the results
     generated_subs = os.path.join(result_path, os.path.splitext(os.path.basename(test_audio))[0] + '.vtt')

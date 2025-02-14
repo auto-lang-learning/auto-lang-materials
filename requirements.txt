@@ -1,2 +1,5 @@
+openai
+langchain
 setuptools-rust
 openai-whisper
+pysubs2
