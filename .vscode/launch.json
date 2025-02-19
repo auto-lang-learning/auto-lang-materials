@@ -8,37 +8,37 @@
             "program": "${workspaceFolder}/src/translate_vtt.py",
             "envFile": "${workspaceFolder}/.env",
             "args": [
-                "${input:inputVtt}",
-                "${input:outputVtt}",
-                "${input:targetLanguage}",
-                "${input:modelName}"
+                "${input:input_file}",
+                "${input:output_file}",
+                "${input:target_language}",
+                "${input:model_name}"
             ]
         }
     ],
     "inputs": [
         {
             "type": "promptString",
-            "id": "inputVtt",
+            "id": "input_file",
             "description": "Path to the input VTT file",
             "default": "${workspaceFolder}/downloads/test_1min.vtt"
         },
         {
             "type": "promptString",
-            "id": "outputVtt",
+            "id": "output_file",
             "description": "Path to the output VTT file",
             "default": "${workspaceFolder}/downloads/test_1min_translated.vtt"
         },
         {
             "type": "promptString",
-            "id": "targetLanguage",
+            "id": "target_language",
             "description": "Target language for translation",
             "default": "chinese"
         },
         {
             "type": "promptString",
-            "id": "modelName",
+            "id": "model_name",
             "description": "Model name for translation",
-             "default": "qwen2.5-7b-instruct-1m"
+            "default": "deepseek-v3"
         }
     ]
 }
