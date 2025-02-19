@@ -1,23 +1,27 @@
 from flask import Flask, request, jsonify
-from download_video import download_video
+from yt_helper import get_subtitle
 import os
+import requests
 from dotenv import load_dotenv
+
 load_dotenv()
 
 app = Flask(__name__)
-proxy=os.getenv('PROXY')
+proxy=os.getenv('HTTP_PROXY')
+assert proxy is not None
 
 @app.route('/download_subtitles', methods=['POST'])
 def download_subtitles():
     data = request.json
     video_url = data.get('video_url')
-    language = data.get('language', 'en')
-
+    language=data.get('language')
+    format=data.get('format')
+   
     # Download the video
-    video_path = download_video(video_url, 'downloads')
+    subtitle = get_subtitle(video_url, 'downloads', proxy=proxy,language=language,subtitlesformat=format)
+  
+    return jsonify(subtitle)
 
- 
-    return video_path
 
 if __name__ == '__main__':
     app.run(debug=True)

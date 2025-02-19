@@ -5,3 +5,4 @@ openai-whisper
 pysubs2
 Flask
 python-dotenv
+requests
