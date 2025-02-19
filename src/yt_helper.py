@@ -30,6 +30,10 @@ def get_subtitle(url,cookies_path=None, retries=3, proxy=None,subtitlesformat='v
                 # Get video information
                 info_dict = ydl.extract_info(url, download=True) 
                 subtitle_content = StringIO()
+                if language not in info_dict['subtitles']:
+                    return f"No subtitles found for language :{language}"
+                if subtitlesformat not in [fmt['ext'] for fmt in info_dict['subtitles'][language]]:
+                    return f"No subtitles found in {subtitlesformat} format for the language :{language}"
                 with open(os.path.join(temp_dir, f"{info_dict['id']}.{language}.{subtitlesformat}"), 'r') as f:
                     subtitle_content.write(f.read())
                 
