@@ -1,3 +1,6 @@
+获取user_access_token的方法还需要再讨论，目前是手动从飞书API调试台获取，有效期两个小时
+
+
 通过get_note_space获取wiki节点文档的id 
 https://open.feishu.cn/api-explorer/cli_a720002cf32f100b?apiName=get_node&project=wiki&resource=space&version=v2
 
