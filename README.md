@@ -33,7 +33,7 @@ A automated pipeline that transforms YouTube videos into comprehensive language 
 
 ## Getting Started
 
-[Add installation and usage instructions here]
+```sudo apt update && sudo apt install ffmpeg```
 
 ## Requirements
 
@@ -50,3 +50,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 [Add your license information here]
+
